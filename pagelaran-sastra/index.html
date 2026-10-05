@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#973031">
+  <title>Pagelaran Sastra 2026 - Tiket</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Hanken+Grotesk:wght@400;500;700;800&family=Playfair+Display:wght@700;800;900&family=Playfair+Display+SC:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+
+    <section id="view-home" class="view">
+      <div class="landing">
+        <div class="landing-bg" aria-hidden="true"></div>
+
+        <header class="landing-top">
+          <img class="landing-logo" src="logo.png" alt="Logo Pagelaran Sastra">
+        </header>
+
+        <div class="landing-content">
+          <p class="kicker" id="eventName">Pagelaran Sastra 2026</p>
+          <h1>
+            <span class="h1-a">Tingang,</span>
+            <span class="h1-b">Nyanyian Tanah Borneo</span>
+          </h1>
+          <ul class="landing-info">
+            <li>
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v10H5V10Zm2 2v2h4v-2H7Z"/></svg>
+              <span id="metaDate"></span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/></svg>
+              <span id="metaLocation"></span>
+            </li>
+          </ul>
+          <div class="landing-cta">
+            <button class="btn btn-red js-buy">Beli tiket</button>
+            <a class="btn btn-outline" id="btnContact" target="_blank" rel="noopener">Contact person</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-tickets" class="view" hidden>
+      <header class="step-head">
+        <p class="step-label">Langkah 1 dari 3</p>
+        <h2>Pilih kategori dan jumlah tiket</h2>
+      </header>
+
+      <div class="promo">
+        <label for="promoInput">Punya kode promo?</label>
+        <div class="promo-row">
+          <input id="promoInput" type="text" placeholder="Masukkan kode bundling atau flash sale" autocomplete="off">
+          <button id="btnPromo" class="btn btn-teal">Pakai kode</button>
+        </div>
+        <p id="promoMsg" class="promo-msg" role="status"></p>
+      </div>
+
+      <div id="ticketGrid"></div>
+
+      <div class="nav-row center">
+        <button id="btnBackHome" class="btn btn-ghost">Kembali</button>
+      </div>
+    </section>
+
+    <section id="view-data" class="view narrow" hidden>
+      <header class="step-head">
+        <p class="step-label" id="dataStepLabel"></p>
+        <h2 id="dataTitle"></h2>
+        <div class="dots" id="dataDots"></div>
+      </header>
+
+      <div class="summary">
+        <div><span>Kategori</span><b id="sumKategori"></b></div>
+        <div><span>Tiket ke</span><b id="sumKe"></b></div>
+        <div class="sum-total"><span>Total bayar</span><b id="sumTotal"></b></div>
+      </div>
+
+      <form id="personForm" novalidate>
+        <div class="field">
+          <label for="fEmail">Alamat email</label>
+          <input id="fEmail" type="email" placeholder="email@contoh.com" autocomplete="email">
+          <p class="hint">Bukti pemesanan akan dikirim ke email ini.</p>
+          <p class="err" data-err="email"></p>
+        </div>
+        <div class="field">
+          <label for="fNama">Nama lengkap</label>
+          <input id="fNama" type="text" placeholder="Nama sesuai identitas" autocomplete="name">
+          <p class="err" data-err="nama"></p>
+        </div>
+        <div class="field">
+          <label for="fHp">Nomor HP / WhatsApp</label>
+          <input id="fHp" type="tel" placeholder="08xxxxxxxxxx" autocomplete="tel">
+          <p class="err" data-err="hp"></p>
+        </div>
+        <div class="field">
+          <label for="fInstansi">Asal institusi</label>
+          <input id="fInstansi" type="text" placeholder="Universitas / Sekolah / Komunitas">
+          <p class="err" data-err="instansi"></p>
+        </div>
+        <div class="field">
+          <label for="fInfo">Dapat informasi acara dari mana?</label>
+          <input id="fInfo" type="text" placeholder="Instagram / Teman / Poster / dll">
+          <p class="err" data-err="info"></p>
+        </div>
+        <div class="nav-row">
+          <button type="button" id="btnDataBack" class="btn btn-ghost">Kembali</button>
+          <button type="submit" id="btnDataNext" class="btn btn-red grow"></button>
+        </div>
+      </form>
+      <p class="foot-note">Tiket yang sudah dibeli tidak dapat dikembalikan. Dimohon membawa bukti pemesanan saat masuk ke dalam venue.</p>
+    </section>
+
+    <section id="view-pay" class="view narrow" hidden>
+      <header class="step-head">
+        <p class="step-label">Langkah 3 dari 3</p>
+        <h2>Bukti pembayaran</h2>
+      </header>
+
+      <div class="summary" id="paySummary"></div>
+
+      <div class="pay-box">
+        <p class="pay-title">Transfer bank</p>
+        <div class="bank">
+          <div>
+            <b id="bankName"></b>
+            <small id="bankHolder"></small>
+          </div>
+          <div class="bank-num">
+            <code id="bankNumber"></code>
+            <button type="button" id="btnCopy" class="btn btn-teal btn-sm">Salin</button>
+          </div>
+        </div>
+        <p class="or">atau</p>
+        <p class="pay-title">Scan QRIS</p>
+        <div class="qris">
+          <img id="qrisImg" alt="QRIS pembayaran" onerror="this.replaceWith(Object.assign(document.createElement('p'),{className:'qris-missing',textContent:'Gambar QRIS belum tersedia. Gunakan transfer bank.'}))">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Upload bukti pembayaran</label>
+        <div id="dropzone" class="dropzone" tabindex="0" role="button">
+          <input id="proofInput" type="file" accept="image/jpeg,image/png,image/heic,image/heif,image/webp" hidden>
+          <img id="proofPreview" alt="Pratinjau bukti pembayaran" hidden>
+          <p id="dropText">Klik atau seret foto bukti transfer ke sini</p>
+          <small>JPG, PNG, HEIC. Maksimal 5 MB</small>
+        </div>
+        <p class="err" id="proofErr"></p>
+      </div>
+
+      <p id="submitErr" class="err big"></p>
+      <div class="nav-row">
+        <button type="button" id="btnPayBack" class="btn btn-ghost">Kembali</button>
+        <button type="button" id="btnSubmit" class="btn btn-red grow">Kirim pemesanan</button>
+      </div>
+      <p class="foot-note">Pastikan foto bukti pembayaran sudah benar sebelum dikirim.</p>
+    </section>
+
+    <section id="view-done" class="view" hidden>
+      <div class="conf">
+        <header class="conf-head">
+          <div class="conf-stamp">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.8l4.6 4.6L19.5 7"/></svg>
+          </div>
+          <div>
+            <span class="conf-kicker">Pesanan terkirim</span>
+            <h2>Terima kasih!</h2>
+            <p class="conf-lead">Pemesananmu sudah kami terima dan sedang menunggu verifikasi panitia.</p>
+          </div>
+        </header>
+
+        <div class="conf-grid">
+          <div class="conf-main">
+            <article class="ticket">
+              <div class="ticket-main">
+                <div class="ticket-brand">
+                  <img src="logo.png" alt="Logo Pagelaran Sastra">
+                  <div>
+                    <small>Bukti pemesanan</small>
+                    <b id="doneEvent">Pagelaran Sastra 2026</b>
+                  </div>
+                </div>
+                <dl class="ticket-info">
+                  <div><dt>Kategori</dt><dd id="doneKategori"></dd></div>
+                  <div><dt>Jumlah</dt><dd id="doneQty"></dd></div>
+                  <div class="wide"><dt>Atas nama</dt><dd id="doneName"></dd></div>
+                  <div class="wide"><dt>Waktu pementasan</dt><dd id="doneDate"></dd></div>
+                  <div class="wide"><dt>Lokasi</dt><dd id="doneLoc"></dd></div>
+                </dl>
+              </div>
+              <div class="ticket-stub">
+                <small>Kode tiket</small>
+                <b id="doneCode"></b>
+                <span class="stamp">Menunggu verifikasi</span>
+                <button type="button" id="btnCopyCode" class="btn btn-teal btn-sm">Salin kode</button>
+              </div>
+            </article>
+
+            <div class="total-bar">
+              <span>Total bayar</span>
+              <b id="doneTotal"></b>
+            </div>
+            <p id="doneMail" class="conf-mail"></p>
+          </div>
+
+          <aside class="conf-side">
+            <h3>Langkah selanjutnya</h3>
+            <ol class="timeline">
+              <li class="done">
+                <span class="dot">&#10003;</span>
+                <div><b>Pesanan diterima</b><p>Bukti pemesanan sudah dikirim ke emailmu.</p></div>
+              </li>
+              <li class="now">
+                <span class="dot">2</span>
+                <div><b>Verifikasi panitia</b><p>Panitia mengecek bukti pembayaran yang kamu upload.</p></div>
+              </li>
+              <li>
+                <span class="dot">3</span>
+                <div><b>Tiket aktif</b><p>Setelah terverifikasi, kamu menerima email konfirmasi.</p></div>
+              </li>
+            </ol>
+            <button id="btnAgain" class="btn btn-ghost conf-back">Kembali ke beranda</button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="modalQty" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mqTitle">
+      <span class="tag" id="mqTag"></span>
+      <h3 id="mqTitle"></h3>
+      <p class="mq-price" id="mqPrice"></p>
+      <div class="qty-ctrl" id="mqCtrl">
+        <button type="button" id="mqMinus" class="qty-btn" aria-label="Kurangi">-</button>
+        <output id="mqVal">1</output>
+        <button type="button" id="mqPlus" class="qty-btn" aria-label="Tambah">+</button>
+      </div>
+      <p class="qty-note" id="mqNote"></p>
+      <p class="qty-total">Total <b id="mqTotal"></b></p>
+      <div class="nav-row">
+        <button type="button" id="mqCancel" class="btn btn-ghost">Batal</button>
+        <button type="button" id="mqOk" class="btn btn-red grow">Lanjut</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalConfirm" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="cfTitle">
+      <h3 id="cfTitle">Yakin memesan tiket ini?</h3>
+      <p class="cf-text" id="cfText"></p>
+      <p class="qty-total">Total <b id="cfTotal"></b></p>
+      <div class="nav-row">
+        <button type="button" id="cfBack" class="btn btn-ghost">Ubah</button>
+        <button type="button" id="cfOk" class="btn btn-red grow">Ya, saya yakin</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loader" class="loader" hidden><div class="spin"></div><p id="loaderText">Memuat...</p><p class="loader-sub" id="loaderSub">Mohon tunggu sebentar</p></div>
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
