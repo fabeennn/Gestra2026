@@ -1,31 +1,72 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Website Under Maintenance</title>
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             background-color: #ffffff;
+            position: relative;
         }
-        img {
+
+        /* Logo di pojok kanan atas */
+        .logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+
+        /* Gambar maintenance di tengah */
+        .maintenance {
             max-width: 100%;
             max-height: 100vh;
             object-fit: contain;
         }
+
+        /* Tampilan untuk HP */
+        @media (max-width: 600px) {
+            .logo {
+                top: 12px;
+                right: 12px;
+                width: 55px;
+                height: 55px;
+            }
+        }
     </style>
 </head>
+
 <body>
-    <!-- Pastikan nama file gambar di bawah ini persis sama dengan yang ada di GitHub kamu -->
-    <img src="maintenance.webp" alt="This site is under maintenance">
+
+    <!-- Logo Pergelaran Sastra 2026 -->
+    <img
+        src="logo.png"
+        alt="Logo Pergelaran Sastra 2026"
+        class="logo"
+    >
+
+    <!-- Gambar maintenance -->
+    <img
+        src="maintenance.webp"
+        alt="This site is under maintenance"
+        class="maintenance"
+    >
+
 </body>
 </html>
+```
