@@ -2,10 +2,13 @@ const CONFIG = {
   apiUrl: "https://script.google.com/macros/s/AKfycbyR9vq2YudXuUUV-exq7btMgMQEWrI_8M4b6AQ0EhkZGjCPWHcBkBxHZleun9F1blr5/exec",
   eventName: "Pagelaran Sastra 2026",
   location: "Auditorium Driyarkara, Sanata Dharma",
-  contactWa: "083129424923",
+  contactWa: "089620331891",
+  contactName: "Susji",
   dateText: "Sabtu, 5 Desember 2026",
   maxPerOrder: 10,
-  testMode: true,
+  testMode: false,
+  sendTimeoutMs: 45000,
+  slowHintMs: 12000,
   bank: {
     name: "Mandiri",
     number: "1360034685690",
@@ -19,10 +22,10 @@ const CONFIG = {
     FLASH26: { type: "flash" }
   },
   tickets: [
-    { id: "eb", group: "earlybird", label: "Early Bird", name: "Early Bird", price: 30000, quota: 50, size: 1, enabled: true, start: "2026-10-05T15:00:00+07:00", end: "2026-10-12T15:00:00+07:00" },
-    { id: "rg-hudoq", group: "reguler", tier: "Reguler", label: "Reguler - Hudoq", name: "Hudoq", price: 35000, quota: 350, size: 1, enabled: false, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
-    { id: "rg-majau", group: "reguler", tier: "VIP", label: "VIP - Majau", name: "Majau", price: 45000, quota: 100, size: 1, enabled: false, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
-    { id: "rg-datun", group: "reguler", tier: "VVIP", label: "VVIP - Datun Julud", name: "Datun Julud", price: 65000, quota: 100, size: 1, enabled: false, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
+    { id: "eb", group: "earlybird", label: "Early Bird", name: "Early Bird", price: 30000, quota: 50, size: 1, enabled: false, ended: true, start: "2026-10-05T15:00:00+07:00", end: "2026-10-12T15:00:00+07:00" },
+    { id: "rg-hudoq", group: "reguler", tier: "Reguler", label: "Reguler - Hudoq", name: "Hudoq", price: 35000, quota: 350, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
+    { id: "rg-majau", group: "reguler", tier: "VIP", label: "VIP - Majau", name: "Majau", price: 45000, quota: 100, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
+    { id: "rg-datun", group: "reguler", tier: "VVIP", label: "VVIP - Datun Julud", name: "Datun Julud", price: 65000, quota: 100, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
     { id: "bd-couple", group: "bundling", label: "Bundling - Couple", name: "Couple", price: 65000, quota: 50, size: 2, enabled: false, start: "2026-11-01T15:00:00+07:00", end: "2026-11-15T15:00:00+07:00" },
     { id: "bd-tripple", group: "bundling", label: "Bundling - Tripple", name: "Tripple", price: 100000, quota: 45, size: 3, enabled: false, start: "2026-11-01T15:00:00+07:00", end: "2026-11-15T15:00:00+07:00" },
     { id: "bd-squad", group: "bundling", label: "Bundling - Squad", name: "Squad", price: 170000, quota: 45, size: 5, enabled: false, start: "2026-11-01T15:00:00+07:00", end: "2026-11-15T15:00:00+07:00" },
@@ -124,6 +127,7 @@ function leftOf(t) {
   return Math.max(0, t.quota - (stock[t.label] || 0));
 }
 function ticketState(t) {
+  if (t.ended) return "ended";
   if (!t.enabled) return "soon";
   if (!CONFIG.testMode) {
     const now = Date.now();
@@ -179,12 +183,18 @@ function cardHtml(t) {
         <h3>${esc(t.name)}</h3>
         ${hide ? '<p class="price hidden-price">Harga segera diumumkan</p>' : `<p class="price">${rp(t.price)} <small>${unit}</small></p>`}
       </div>
-      ${hide ? "" : `<div class="stock">
+      ${hide || st === "ended" ? "" : `<div class="stock">
         <div><span>${stockLabel}</span><span>${st === "soon" ? "-" : left + " / " + t.quota}</span></div>
         <div class="bar"><i class="${pct <= 20 ? "low" : ""}" style="width:${st === "soon" ? 0 : pct}%"></i></div>
       </div>`}
       <button class="btn" data-id="${t.id}" ${st === "open" ? "" : "disabled"}>${btnText}</button>
     </article>`;
+}
+
+// Tiket yang masih berjalan tampil lebih dulu, yang sudah berakhir di paling belakang.
+function orderedTickets() {
+  const all = visibleGroups().flatMap((g) => g.list);
+  return all.filter((t) => ticketState(t) !== "ended").concat(all.filter((t) => ticketState(t) === "ended"));
 }
 
 function renderTickets() {
@@ -197,7 +207,7 @@ function renderTickets() {
   }
   const oldGrid = document.querySelector("#ticketGrid .grid");
   const keepScroll = oldGrid ? oldGrid.scrollLeft : 0;
-  $("#ticketGrid").innerHTML = `<div class="grid">${visibleGroups().map((g) => g.list.map(cardHtml).join("")).join("")}</div>`;
+  $("#ticketGrid").innerHTML = `<div class="grid">${orderedTickets().map(cardHtml).join("")}</div>`;
   $("#ticketGrid").querySelectorAll("button[data-id]").forEach((b) => b.addEventListener("click", () => selectTicket(b.dataset.id)));
   const newGrid = document.querySelector("#ticketGrid .grid");
   if (newGrid) newGrid.scrollLeft = keepScroll;
@@ -427,27 +437,70 @@ async function handleFile(file) {
   $("#dropzone").classList.add("has");
 }
 
+let sending = false;
+
+function netFailure() {
+  const err = new Error("net");
+  err.net = true;
+  return err;
+}
+
+// Satu kali kirim dengan batas waktu. Balasan bukan JSON, jaringan putus, atau timeout
+// semuanya dianggap gagal jaringan (aman diulang karena requestId sama dikenali server).
+async function postOrder(payload) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), CONFIG.sendTimeoutMs || 45000);
+  try {
+    const r = await fetch(CONFIG.apiUrl, { method: "POST", body: JSON.stringify(payload), signal: ctrl.signal });
+    const text = await r.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw netFailure();
+    }
+  } catch (e) {
+    throw e && e.net ? e : netFailure();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// requestId tetap sama selama isi pesanan sama, jadi pengiriman ulang tidak tercatat dua kali.
+function requestIdFor(t) {
+  const sig = [t.label, JSON.stringify(state.people), state.proof.dataUrl.length, state.proof.dataUrl.slice(-48)].join("|");
+  if (!state.requestId || state.reqSig !== sig) {
+    state.requestId = "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    state.reqSig = sig;
+  }
+  return state.requestId;
+}
+
 async function submitOrder() {
+  if (sending) return;
   const t = currentTicket();
   if (!state.proof) {
     $("#proofErr").textContent = "Upload bukti pembayaran dulu.";
     return;
   }
+  sending = true;
   $("#submitErr").textContent = "";
-  showLoader("Mengirim pemesanan...", "Jangan tutup halaman ini");
   $("#btnSubmit").disabled = true;
+  showLoader("Mengirim pemesanan...", "Jangan tutup halaman ini");
+  const slowTimer = setTimeout(() => {
+    $("#loaderSub").textContent = "Koneksi terasa lambat. Mohon tunggu, jangan tutup halaman ini.";
+  }, CONFIG.slowHintMs || 12000);
   const payload = {
     ticketLabel: t.label,
     qty: state.people.length,
     promoCode: state.promo ? state.promo.code : "",
     people: state.people,
+    requestId: requestIdFor(t),
     proof: { name: state.proof.name, mime: state.proof.mime, data: state.proof.dataUrl.split(",")[1] }
   };
   try {
     let res;
     if (CONFIG.apiUrl) {
-      const r = await fetch(CONFIG.apiUrl, { method: "POST", body: JSON.stringify(payload) });
-      res = await r.json();
+      res = await postOrder(payload);
     } else {
       await new Promise((ok) => setTimeout(ok, 900));
       res = { ok: true, orderCode: "PBSI-DEMO-0000", total: totalOf(t, payload.qty) };
@@ -455,15 +508,23 @@ async function submitOrder() {
     if (!res.ok) throw new Error(res.message || "Pemesanan gagal diproses.");
     finish(res, t);
   } catch (e) {
-    $("#submitErr").textContent = e.message || "Terjadi kesalahan. Coba lagi.";
-    await loadStock();
+    if (e && e.net) {
+      openModal("modalNet");
+    } else {
+      $("#submitErr").textContent = (e && e.message) || "Terjadi kesalahan. Coba lagi.";
+      await loadStock();
+    }
   } finally {
+    clearTimeout(slowTimer);
     hideLoader();
     $("#btnSubmit").disabled = false;
+    sending = false;
   }
 }
 
 function finish(res, t) {
+  state.requestId = null;
+  state.reqSig = null;
   const n = state.people.length;
   $("#doneCode").textContent = res.orderCode;
   $("#doneKategori").textContent = categoryName(t);
@@ -494,12 +555,24 @@ function resetAll() {
   showView("view-home");
 }
 
+// wa.me butuh kode negara: 08xxx / 8xxx / +62xxx semuanya jadi 62xxx.
+function waNumber(raw) {
+  let d = String(raw || "").replace(/\D/g, "");
+  if (d.indexOf("00") === 0) d = d.slice(2);
+  if (d.indexOf("0") === 0) d = "62" + d.slice(1);
+  else if (d.indexOf("8") === 0) d = "62" + d;
+  return d;
+}
+
 function initHome() {
   document.title = CONFIG.eventName + " - Tiket";
   $("#eventName").textContent = CONFIG.eventName;
   $("#metaDate").textContent = CONFIG.dateText;
   $("#metaLocation").textContent = CONFIG.location;
-  $("#btnContact").href = "https://wa.me/" + CONFIG.contactWa + "?text=" + encodeURIComponent("Halo panitia " + CONFIG.eventName + ", saya ingin bertanya.");
+  const btn = $("#btnContact");
+  btn.href = "https://wa.me/" + waNumber(CONFIG.contactWa) + "?text=" + encodeURIComponent("Halo panitia " + CONFIG.eventName + ", saya ingin bertanya.");
+  btn.title = "Hubungi " + CONFIG.contactName + " via WhatsApp";
+  btn.setAttribute("aria-label", "Hubungi " + CONFIG.contactName + " via WhatsApp");
 }
 
 document.querySelectorAll(".js-buy").forEach((b) => b.addEventListener("click", async () => {
@@ -562,7 +635,7 @@ $("#cfOk").addEventListener("click", async () => {
 document.querySelectorAll(".modal").forEach((m) =>
   m.addEventListener("click", (e) => {
     if (e.target === m) {
-      state.selected = null;
+      if (m.id !== "modalNet") state.selected = null;
       m.hidden = true;
     }
   })
@@ -571,7 +644,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   document.querySelectorAll(".modal").forEach((m) => {
     if (!m.hidden) {
-      state.selected = null;
+      if (m.id !== "modalNet") state.selected = null;
       m.hidden = true;
     }
   });
@@ -640,6 +713,11 @@ dz.addEventListener("drop", (e) => {
 });
 $("#proofInput").addEventListener("change", (e) => handleFile(e.target.files[0]));
 $("#btnSubmit").addEventListener("click", submitOrder);
+$("#netClose").addEventListener("click", () => closeModal("modalNet"));
+$("#netRetry").addEventListener("click", () => {
+  closeModal("modalNet");
+  submitOrder();
+});
 $("#btnAgain").addEventListener("click", resetAll);
 $("#btnCopyCode").addEventListener("click", async () => {
   try {
