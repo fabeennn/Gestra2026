@@ -1,5 +1,5 @@
 const CONFIG = {
-  apiUrl: "https://script.google.com/macros/s/AKfycbzqOneNSv-_Rd6LAnMwVOGqjGqBrLCWceP1Q4i1dJ604yg-wK9YuC0HUf4L0XUpOMcm/exec",
+  apiUrl: "https://script.google.com/macros/s/AKfycbyI3ZM3OC6OFUHt0eWiwB8vQ5zj3hjCy2v4X_O_zSBV_EpjvBLo4-LCsFLIaewSeaiS/exec",
   eventName: "Pagelaran Sastra 2026",
   location: "Auditorium Driyarkara, Sanata Dharma",
   contactWa: "089620331891",
@@ -16,9 +16,9 @@ const CONFIG = {
   },
   qrisImage: "qris.jpg",
   demoCodes: {
-    COUPLE26: { type: "bundle", label: "Bundling - Couple" },
-    TRIPPLE26: { type: "bundle", label: "Bundling - Tripple" },
-    SQUAD26: { type: "bundle", label: "Bundling - Squad" },
+    TINGANG2026: { type: "bundle", label: "Bundling - Couple" },
+    "26TINGANG": { type: "bundle", label: "Bundling - Tripple" },
+    "2026TINGANG": { type: "bundle", label: "Bundling - Squad" },
     FLASH26: { type: "flash" }
   },
   tickets: [
@@ -26,9 +26,9 @@ const CONFIG = {
     { id: "rg-hudoq", group: "reguler", tier: "Reguler", label: "Reguler - Hudoq", name: "Hudoq", price: 35000, quota: 350, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
     { id: "rg-majau", group: "reguler", tier: "VIP", label: "VIP - Majau", name: "Majau", price: 45000, quota: 100, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
     { id: "rg-datun", group: "reguler", tier: "VVIP", label: "VVIP - Datun Julud", name: "Datun Julud", price: 65000, quota: 100, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
-    { id: "bd-couple", group: "bundling", label: "Bundling - Couple", name: "Couple", price: 65000, quota: 50, size: 2, enabled: false, start: "2026-11-01T15:00:00+07:00", end: "2026-11-15T15:00:00+07:00" },
-    { id: "bd-tripple", group: "bundling", label: "Bundling - Tripple", name: "Tripple", price: 100000, quota: 45, size: 3, enabled: false, start: "2026-11-01T15:00:00+07:00", end: "2026-11-15T15:00:00+07:00" },
-    { id: "bd-squad", group: "bundling", label: "Bundling - Squad", name: "Squad", price: 170000, quota: 45, size: 5, enabled: false, start: "2026-11-01T15:00:00+07:00", end: "2026-11-15T15:00:00+07:00" },
+    { id: "bd-couple", group: "bundling", label: "Bundling - Couple", name: "Couple", price: 65000, quota: 50, size: 2, enabled: true, start: "2026-11-01T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
+    { id: "bd-tripple", group: "bundling", label: "Bundling - Tripple", name: "Tripple", price: 100000, quota: 45, size: 3, enabled: true, start: "2026-11-01T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
+    { id: "bd-squad", group: "bundling", label: "Bundling - Squad", name: "Squad", price: 170000, quota: 45, size: 5, enabled: true, start: "2026-11-01T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
     { id: "fs-hudoq", group: "flash", label: "Flash Sale - Hudoq", name: "Hudoq", price: 31500, quota: 50, size: 1, enabled: false, start: "2026-11-20T15:00:00+07:00", end: "2026-11-21T15:00:00+07:00" },
     { id: "fs-majau", group: "flash", label: "Flash Sale - Majau", name: "Majau", price: 41500, quota: 50, size: 1, enabled: false, start: "2026-11-20T15:00:00+07:00", end: "2026-11-21T15:00:00+07:00" },
     { id: "fs-datun", group: "flash", label: "Flash Sale - Datun Julud", name: "Datun Julud", price: 61500, quota: 50, size: 1, enabled: false, start: "2026-11-20T15:00:00+07:00", end: "2026-11-21T15:00:00+07:00" }
@@ -158,10 +158,6 @@ function visibleGroups() {
     { title: "Early Bird", cls: "", list: CONFIG.tickets.filter((t) => t.group === "earlybird") },
     { title: "Reguler", cls: "", list: CONFIG.tickets.filter((t) => t.group === "reguler") }
   ];
-  if (state.promo && state.promo.type === "bundle") {
-    const t = getTicketByLabel(state.promo.label);
-    if (t) groups.unshift({ title: "Paket bundling", cls: "", list: [t] });
-  }
   if (state.promo && state.promo.type === "flash") {
     groups.unshift({ title: "Flash sale", cls: "flash", list: CONFIG.tickets.filter((t) => t.group === "flash") });
   }
@@ -232,14 +228,28 @@ function selectTicket(id) {
   openModal("modalQty");
 }
 
+// Keluar dari mode bundling: kode dilepas, tampilan kembali normal.
+function leaveBundle() {
+  if (!(state.promo && state.promo.type === "bundle")) return;
+  state.promo = null;
+  state.selected = null;
+  $("#promoInput").value = "";
+  $("#promoMsg").textContent = "";
+  $("#promoMsg").className = "promo-msg";
+  renderTickets();
+}
+
 function renderQtyModal() {
   const t = currentTicket();
   const bundle = isBundle(t);
+  $("#mqCancel").textContent = bundle ? "Kembali" : "Batal";
+  $("#mqOk").textContent = bundle ? "Pilih paket ini" : "Lanjut";
   const max = maxQty(t);
   $("#mqTag").textContent = tagOf(t);
   $("#mqTitle").textContent = t.name;
   $("#mqPrice").textContent = rp(t.price) + (bundle ? " / paket " + t.size + " orang" : " / orang");
   $("#mqCtrl").hidden = bundle;
+  $("#mqInfo").hidden = !bundle;
   $("#mqVal").textContent = state.qty;
   $("#mqMinus").disabled = state.qty <= 1;
   $("#mqPlus").disabled = state.qty >= max;
@@ -258,7 +268,7 @@ function renderConfirm() {
   const t = currentTicket();
   const n = state.qty;
   $("#cfText").innerHTML = isBundle(t)
-    ? `Kamu akan memesan paket <b>${esc(categoryName(t))}</b> untuk <b>${n} orang</b>.`
+    ? `Kamu akan memesan paket <b>${esc(categoryName(t))}</b> untuk <b>${n} orang</b>.<br><small>Paket bundling hanya berlaku untuk tiket kategori Reguler.</small>`
     : `Kamu akan memesan tiket kategori <b>${esc(categoryName(t))}</b> sebanyak <b>${n} tiket</b>.`;
   $("#cfTotal").textContent = rp(totalOf(t, n));
 }
@@ -268,7 +278,7 @@ function maxQty(t) {
 }
 
 async function applyPromo() {
-  const code = $("#promoInput").value.trim().toUpperCase();
+  const code = $("#promoInput").value.toUpperCase().replace(/\s+/g, "");
   const msg = $("#promoMsg");
   if (!code) {
     msg.className = "promo-msg bad";
@@ -304,8 +314,9 @@ async function applyPromo() {
     const st = t ? ticketState(t) : "soon";
     if (st === "open") {
       msg.className = "promo-msg ok";
-      msg.textContent = "Kode diterima. Paket " + t.name + " untuk " + t.size + " orang sudah tersedia di bawah.";
+      msg.textContent = "Kode diterima. Paket " + t.name + " untuk " + t.size + " orang.";
       renderTickets();
+      selectTicket(t.id); // tampilkan paket bundling dalam popup
       return;
     }
     msg.className = "promo-msg bad";
@@ -600,6 +611,7 @@ $("#mqPlus").addEventListener("click", () => {
 $("#mqCancel").addEventListener("click", () => {
   state.selected = null;
   closeModal("modalQty");
+  leaveBundle();
 });
 $("#mqOk").addEventListener("click", () => {
   renderConfirm();
@@ -637,6 +649,7 @@ document.querySelectorAll(".modal").forEach((m) =>
     if (e.target === m) {
       if (m.id !== "modalNet") state.selected = null;
       m.hidden = true;
+      if (m.id === "modalQty") leaveBundle();
     }
   })
 );
@@ -646,6 +659,7 @@ document.addEventListener("keydown", (e) => {
     if (!m.hidden) {
       if (m.id !== "modalNet") state.selected = null;
       m.hidden = true;
+      if (m.id === "modalQty") leaveBundle();
     }
   });
 });
