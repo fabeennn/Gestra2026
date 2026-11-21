@@ -52,6 +52,93 @@ const state = {
 let stock = {};
 let pollTimer = null;
 
+// ---- Animasi pembuka halaman pilih tiket (1 frame = 1/30 detik) ----
+let introToken = 0;
+let introPending = false;
+function playTicketIntro() {
+  const token = ++introToken;
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const grid = document.querySelector("#ticketGrid .grid");
+  if (!grid || !grid.animate) return;
+  const F = 1000 / 30;
+  const cards = [...grid.children];
+
+  // 1. Kartu muncul berurutan dari bawah (selisih 4 frame): Y +150 -> -10 -> 0, ease out.
+  cards.forEach((c, i) => {
+    c.animate(
+      [
+        { translate: "0 150px", opacity: 0, offset: 0 },
+        { translate: "0 -10px", opacity: 1, offset: 8 / 12 },
+        { translate: "0 0", opacity: 1, offset: 1 }
+      ],
+      { duration: 12 * F, delay: i * 4 * F, easing: "ease-out", fill: "backwards" }
+    );
+  });
+  let t = (Math.max(cards.length - 1, 0) * 4 + 12) * F;
+
+  // 2. Sorotan kartu GESTRA BANTING HARGA: zoom 100% -> 112% (miring -2 derajat) -> 110%.
+  const hot = grid.querySelector(".tcard.banting.open");
+  if (hot) {
+    hot.animate(
+      [
+        { scale: 1, rotate: "0deg", offset: 0 },
+        { scale: 1.12, rotate: "-2deg", offset: 0.6 },
+        { scale: 1.1, rotate: "0deg", offset: 1 }
+      ],
+      { duration: 500, delay: t, easing: "ease-out", fill: "backwards" }
+    );
+    t += 500;
+  }
+
+  // 2b. Sorotan kolom kode promo: kotak membesar sebentar, placeholder diketik (typewriter).
+  const box = document.querySelector("#view-tickets .promo");
+  const input = $("#promoInput");
+  if (box) box.animate([{ scale: 1 }, { scale: 1.03 }, { scale: 1 }], { duration: 600, delay: t, easing: "ease-out" });
+  if (input && !input.value) {
+    const full = input.getAttribute("data-ph") || input.placeholder;
+    input.setAttribute("data-ph", full);
+    input.placeholder = "";
+    let n = 0;
+    const typer = setInterval(() => {
+      if (token !== introToken || document.activeElement === input || input.value) {
+        clearInterval(typer);
+        input.placeholder = full;
+        return;
+      }
+      n++;
+      input.placeholder = full.slice(0, n);
+      if (n >= full.length) clearInterval(typer);
+    }, 30);
+    // pastikan placeholder tidak kosong sebelum mengetik dimulai
+    setTimeout(() => { if (token !== introToken) input.placeholder = full; }, 0);
+    t += full.length * 30 + 400;
+  }
+
+  // 4. Penutup: geser horizontal pelan untuk memperlihatkan tiket lain (batal jika pengguna menyentuh).
+  setTimeout(() => {
+    if (token !== introToken) return;
+    const max = grid.scrollWidth - grid.clientWidth;
+    if (max < 20) return;
+    let cancelled = false;
+    const stop = () => { cancelled = true; grid.style.scrollSnapType = ""; };
+    ["pointerdown", "wheel", "touchstart", "keydown"].forEach((ev) => grid.addEventListener(ev, stop, { once: true, passive: true }));
+    grid.style.scrollSnapType = "none";
+    const start = performance.now();
+    const down = 1500, up = 900;
+    const ease = (x) => 1 - Math.pow(1 - x, 3);
+    const step = (now) => {
+      if (cancelled || token !== introToken) { grid.style.scrollSnapType = ""; return; }
+      const e = now - start;
+      if (e < down) grid.scrollLeft = max * ease(e / down);
+      else if (e < down + 400) grid.scrollLeft = max;
+      else if (e < down + 400 + up) grid.scrollLeft = max * (1 - ease((e - down - 400) / up));
+      else { grid.scrollLeft = 0; grid.style.scrollSnapType = ""; return; }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, t);
+}
+
 function showView(id) {
   const views = [...document.querySelectorAll(".view")];
   const cur = views.find((v) => !v.hidden);
@@ -68,6 +155,11 @@ function showView(id) {
     window.scrollTo({ top: 0 });
     next.classList.add("enter");
     if (id === "view-tickets") {
+      introPending = true;
+      if (document.querySelector("#ticketGrid .grid .tcard")) {
+        introPending = false;
+        playTicketIntro();
+      }
       pollTimer = setInterval(async () => {
         await loadStock();
         renderTickets();
@@ -191,9 +283,9 @@ function cardHtml(t) {
     <article class="tcard ${st}${t.id === "rg-hudoq" ? " banting" : ""}">
       <div class="top">
         <span class="tag">${t.id === "rg-hudoq" ? "&#9733; " : ""}${esc(cardTag(t))}${t.id === "rg-hudoq" ? " &#9733;" : ""}</span>
-        <h3>${esc(cardName(t))}</h3>
+        <h3 class="${cardName(t).length > 9 ? "long" : ""}">${esc(cardName(t))}</h3>
         ${hide ? '<p class="price hidden-price">Harga segera diumumkan</p>' : `<p class="price">${rp(t.price)} <small>${unit}</small></p>`}
-        ${isStudent(t) ? '<p class="tnote">Khusus tiket Reguler. Wajib upload foto kartu pelajar.</p>' : ""}
+        ${isStudent(t) ? '<p class="tnote">Wajib upload foto Kartu pelajar</p>' : ""}
       </div>
       ${hide || st === "ended" ? "" : `<div class="stock">
         <div><span>${stockLabel}</span><span>${st === "soon" ? "-" : left + " / " + t.quota}</span></div>
@@ -223,6 +315,10 @@ function renderTickets() {
   $("#ticketGrid").querySelectorAll("button[data-id]").forEach((b) => b.addEventListener("click", () => selectTicket(b.dataset.id)));
   const newGrid = document.querySelector("#ticketGrid .grid");
   if (newGrid) newGrid.scrollLeft = keepScroll;
+  if (introPending && newGrid && !$("#view-tickets").hidden) {
+    introPending = false;
+    playTicketIntro();
+  }
 }
 
 function openModal(id) {
