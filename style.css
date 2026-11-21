@@ -514,3 +514,36 @@ input { font-size: 16px; }
 }
 
 .landing { font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1; }
+
+.tcard .tnote { margin-top: 8px; font-size: 13px; font-weight: 700; line-height: 1.35; }
+
+/* GESTRA BANTING HARGA: kartu paling mencolok */
+.tcard.banting.open {
+  position: relative;
+  background: repeating-linear-gradient(135deg, var(--red) 0 14px, var(--red-dark) 14px 28px);
+  color: #fff;
+  box-shadow: 6px 6px 0 var(--forest);
+  transform: rotate(-1.2deg);
+  animation: bantingPulse 1.6s ease-in-out infinite;
+}
+.tcard.banting.open .top { color: #fff; }
+.tcard.banting.open .tag { background: var(--gold); color: var(--forest); font-size: 13px; letter-spacing: 0.4px; box-shadow: 2px 2px 0 var(--forest); }
+.tcard.banting.open h3 { color: var(--gold); text-shadow: 3px 3px 0 var(--forest); font-size: 38px; }
+.tcard.banting.open .price { color: #fff; font-size: 34px; text-shadow: 2px 2px 0 var(--forest); }
+.tcard.banting.open .price small { color: var(--gold); }
+.tcard.banting.open .stock { background: var(--paper); color: var(--forest); }
+.tcard.banting.open > button { background: var(--gold); color: var(--forest); border: var(--line); box-shadow: 3px 3px 0 var(--forest); font-weight: 800; }
+.tcard .ribbon {
+  position: absolute; top: -14px; right: -10px; z-index: 2;
+  background: var(--gold); color: var(--red-dark); font-weight: 900; font-size: 13px;
+  border: var(--line); padding: 4px 10px; transform: rotate(5deg); box-shadow: 3px 3px 0 var(--forest);
+}
+@keyframes bantingPulse {
+  0%, 100% { transform: rotate(-1.2deg) scale(1); }
+  50% { transform: rotate(-1.2deg) scale(1.025); }
+}
+@media (prefers-reduced-motion: reduce) { .tcard.banting.open { animation: none; } }
+#ticketGrid .grid { padding-top: 20px; }
+.tcard.banting.open .tag { white-space: nowrap; font-size: 12px; letter-spacing: 0; padding: 1px 6px; }
+.tcard.banting.open .price { font-size: 30px; white-space: nowrap; }
+.tcard.banting.open .price small { white-space: nowrap; }
