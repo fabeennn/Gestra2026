@@ -524,7 +524,7 @@ input { font-size: 16px; }
   color: #fff;
   box-shadow: 6px 6px 0 var(--forest);
   transform: rotate(-1.2deg);
-  animation: bantingPulse 1.6s ease-in-out infinite;
+  scale: 1.1;
 }
 .tcard.banting.open .top { color: #fff; }
 .tcard.banting.open .tag { background: var(--gold); color: var(--forest); font-size: 13px; letter-spacing: 0.4px; box-shadow: 2px 2px 0 var(--forest); }
@@ -547,3 +547,11 @@ input { font-size: 16px; }
 .tcard.banting.open .tag { white-space: nowrap; font-size: 12px; letter-spacing: 0; padding: 1px 6px; }
 .tcard.banting.open .price { font-size: 30px; white-space: nowrap; }
 .tcard.banting.open .price small { white-space: nowrap; }
+
+/* Kartu & tombol */
+.tcard h3.long { font-size: 24px; white-space: nowrap; }
+#ticketGrid .grid { padding-bottom: 26px; }
+.btn { transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; }
+.btn:active:not(:disabled) { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--forest); }
+@media (max-width: 640px) { .tcard.banting.open { scale: 1.04; } }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
