@@ -107,6 +107,16 @@
           <input id="fInfo" type="text" placeholder="Instagram / Teman / Poster / dll">
           <p class="err" data-err="info"></p>
         </div>
+        <div class="field" id="studentField" hidden>
+          <label>Foto kartu pelajar</label>
+          <div id="cardDrop" class="dropzone" tabindex="0" role="button">
+            <input id="cardInput" type="file" accept="image/jpeg,image/png,image/heic,image/heif,image/webp" hidden>
+            <img id="cardPreview" alt="Pratinjau kartu pelajar" hidden>
+            <p id="cardText">Klik untuk upload foto kartu pelajar</p>
+            <small>Foto harus jelas dan terbaca. JPG, PNG, HEIC</small>
+          </div>
+          <p class="err" data-err="card"></p>
+        </div>
         <div class="nav-row">
           <button type="button" id="btnDataBack" class="btn btn-ghost">Kembali</button>
           <button type="submit" id="btnDataNext" class="btn btn-red grow"></button>
