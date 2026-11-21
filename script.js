@@ -1,5 +1,5 @@
 const CONFIG = {
-  apiUrl: "https://script.google.com/macros/s/AKfycbyI3ZM3OC6OFUHt0eWiwB8vQ5zj3hjCy2v4X_O_zSBV_EpjvBLo4-LCsFLIaewSeaiS/exec",
+  apiUrl: "https://script.google.com/macros/s/AKfycbyR9vq2YudXuUUV-exq7btMgMQEWrI_8M4b6AQ0EhkZGjCPWHcBkBxHZleun9F1blr5/exec",
   eventName: "Pagelaran Sastra 2026",
   location: "Auditorium Driyarkara, Sanata Dharma",
   contactWa: "089620331891",
@@ -23,9 +23,10 @@ const CONFIG = {
   },
   tickets: [
     { id: "eb", group: "earlybird", label: "Early Bird", name: "Early Bird", price: 30000, quota: 50, size: 1, enabled: false, ended: true, start: "2026-10-05T15:00:00+07:00", end: "2026-10-12T15:00:00+07:00" },
-    { id: "rg-hudoq", group: "reguler", tier: "Reguler", label: "Reguler - Hudoq", name: "Hudoq", price: 35000, quota: 350, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
-    { id: "rg-majau", group: "reguler", tier: "VIP", label: "VIP - Majau", name: "Majau", price: 45000, quota: 100, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
-    { id: "rg-datun", group: "reguler", tier: "VVIP", label: "VVIP - Datun Julud", name: "Datun Julud", price: 65000, quota: 100, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
+    { id: "rg-hudoq", group: "reguler", tier: "Reguler", label: "Reguler - Hudoq", name: "Hudoq", price: 30000, quota: 350, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
+    { id: "rg-pelajar", group: "pelajar", tier: "Reguler Pelajar", label: "Reguler Pelajar - Hudoq", name: "Hudoq", price: 25000, quota: 350, shareWith: "Reguler - Hudoq", size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
+    { id: "rg-majau", group: "reguler", tier: "VIP", label: "VIP - Majau", name: "Majau", price: 41500, quota: 100, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
+    { id: "rg-datun", group: "reguler", tier: "VVIP", label: "VVIP - Datun Julud", name: "Datun Julud", price: 61500, quota: 100, size: 1, enabled: true, start: "2026-10-12T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
     { id: "bd-couple", group: "bundling", label: "Bundling - Couple", name: "Couple", price: 65000, quota: 50, size: 2, enabled: true, start: "2026-11-01T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
     { id: "bd-tripple", group: "bundling", label: "Bundling - Tripple", name: "Tripple", price: 100000, quota: 45, size: 3, enabled: true, start: "2026-11-01T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
     { id: "bd-squad", group: "bundling", label: "Bundling - Squad", name: "Squad", price: 170000, quota: 45, size: 5, enabled: true, start: "2026-11-01T15:00:00+07:00", end: "2026-12-04T15:00:00+07:00" },
@@ -45,7 +46,8 @@ const state = {
   promo: null,
   people: [],
   idx: 0,
-  proof: null
+  proof: null,
+  cards: []
 };
 let stock = {};
 let pollTimer = null;
@@ -124,7 +126,11 @@ function getTicketByLabel(label) {
   return CONFIG.tickets.find((t) => t.label === label);
 }
 function leftOf(t) {
-  return Math.max(0, t.quota - (stock[t.label] || 0));
+  // Promo pelajar memakai kuota Reguler (Hudoq) yang sama.
+  return Math.max(0, t.quota - (stock[t.shareWith || t.label] || 0));
+}
+function isStudent(t) {
+  return !!t && t.group === "pelajar";
 }
 function ticketState(t) {
   if (t.ended) return "ended";
@@ -141,6 +147,7 @@ function tagOf(t) {
   if (t.group === "earlybird") return "Terbatas";
   if (t.group === "reguler") return t.tier || "Reguler";
   if (t.group === "bundling") return "Bundling";
+  if (t.group === "pelajar") return "Promo Pelajar";
   return "Flash sale";
 }
 function priceHidden(t) {
@@ -156,12 +163,20 @@ function totalOf(t, qty) {
 function visibleGroups() {
   const groups = [
     { title: "Early Bird", cls: "", list: CONFIG.tickets.filter((t) => t.group === "earlybird") },
-    { title: "Reguler", cls: "", list: CONFIG.tickets.filter((t) => t.group === "reguler") }
+    { title: "Reguler", cls: "", list: CONFIG.tickets.filter((t) => t.group === "pelajar").concat(CONFIG.tickets.filter((t) => t.group === "reguler")) }
   ];
   if (state.promo && state.promo.type === "flash") {
     groups.unshift({ title: "Flash sale", cls: "flash", list: CONFIG.tickets.filter((t) => t.group === "flash") });
   }
   return groups;
+}
+
+// Judul & label kartu hanya untuk halaman pemilihan tiket. Email dan bagian lain tetap memakai nama Reguler.
+function cardTag(t) {
+  return t.id === "rg-hudoq" ? "GESTRA BANTING HARGA" : tagOf(t);
+}
+function cardName(t) {
+  return isStudent(t) ? "Pelajar" : t.name;
 }
 
 function cardHtml(t) {
@@ -173,11 +188,12 @@ function cardHtml(t) {
   const stockLabel = isBundle(t) ? "Sisa paket" : "Sisa kursi";
   const hide = priceHidden(t);
   return `
-    <article class="tcard ${st}">
+    <article class="tcard ${st}${t.id === "rg-hudoq" ? " banting" : ""}">
       <div class="top">
-        <span class="tag">${esc(tagOf(t))}</span>
-        <h3>${esc(t.name)}</h3>
+        <span class="tag">${t.id === "rg-hudoq" ? "&#9733; " : ""}${esc(cardTag(t))}${t.id === "rg-hudoq" ? " &#9733;" : ""}</span>
+        <h3>${esc(cardName(t))}</h3>
         ${hide ? '<p class="price hidden-price">Harga segera diumumkan</p>' : `<p class="price">${rp(t.price)} <small>${unit}</small></p>`}
+        ${isStudent(t) ? '<p class="tnote">Khusus tiket Reguler. Wajib upload foto kartu pelajar.</p>' : ""}
       </div>
       ${hide || st === "ended" ? "" : `<div class="stock">
         <div><span>${stockLabel}</span><span>${st === "soon" ? "-" : left + " / " + t.quota}</span></div>
@@ -249,7 +265,11 @@ function renderQtyModal() {
   $("#mqTitle").textContent = t.name;
   $("#mqPrice").textContent = rp(t.price) + (bundle ? " / paket " + t.size + " orang" : " / orang");
   $("#mqCtrl").hidden = bundle;
-  $("#mqInfo").hidden = !bundle;
+  const stu = isStudent(t);
+  $("#mqInfo").hidden = !(bundle || stu);
+  $("#mqInfo").innerHTML = stu
+    ? "<b>Promo pelajar khusus tiket Reguler (Hudoq).</b> Wajib upload foto kartu pelajar untuk setiap pemesan."
+    : "<b>Paket bundling ini hanya untuk tiket kategori Reguler (Hudoq).</b>";
   $("#mqVal").textContent = state.qty;
   $("#mqMinus").disabled = state.qty <= 1;
   $("#mqPlus").disabled = state.qty >= max;
@@ -260,6 +280,7 @@ function renderQtyModal() {
 function categoryName(t) {
   if (t.group === "bundling") return "Bundling " + t.name;
   if (t.group === "flash") return "Flash sale " + t.name;
+  if (t.group === "pelajar") return "Reguler Pelajar " + t.name;
   if (t.group === "reguler") return (t.tier || "Reguler") + " " + t.name;
   return t.name;
 }
@@ -269,7 +290,8 @@ function renderConfirm() {
   const n = state.qty;
   $("#cfText").innerHTML = isBundle(t)
     ? `Kamu akan memesan paket <b>${esc(categoryName(t))}</b> untuk <b>${n} orang</b>.<br><small>Paket bundling hanya berlaku untuk tiket kategori Reguler.</small>`
-    : `Kamu akan memesan tiket kategori <b>${esc(categoryName(t))}</b> sebanyak <b>${n} tiket</b>.`;
+    : `Kamu akan memesan tiket kategori <b>${esc(categoryName(t))}</b> sebanyak <b>${n} tiket</b>.` +
+      (isStudent(t) ? "<br><small>Selanjutnya kamu perlu mengunggah foto kartu pelajar di setiap data pemesan.</small>" : "");
   $("#cfTotal").textContent = rp(totalOf(t, n));
 }
 
@@ -338,6 +360,7 @@ function goData() {
   const old = state.people;
   state.people = Array.from({ length: n }, (_, i) => old[i] || { email: "", nama: "", hp: "", instansi: "", info: "" });
   state.idx = 0;
+  state.cards = isStudent(t) ? (state.cards || []).slice(0, n) : [];
   renderPerson();
   showView("view-data");
 }
@@ -358,6 +381,9 @@ function renderPerson() {
   $("#fHp").value = p.hp;
   $("#fInstansi").value = p.instansi;
   $("#fInfo").value = p.info;
+  const stuMode = isStudent(t);
+  $("#studentField").hidden = !stuMode;
+  showCard(stuMode ? state.cards[i] : null);
   $("#btnDataNext").textContent = i < n - 1 ? "Simpan dan lanjut ke orang ke-" + (i + 2) : "Simpan dan lanjut ke pembayaran";
   document.querySelectorAll("#personForm input").forEach((el) => el.classList.remove("invalid"));
   document.querySelectorAll("[data-err]").forEach((el) => (el.textContent = ""));
@@ -378,6 +404,8 @@ function validatePerson() {
   if (digits.length < 9 || digits.length > 15) errors.hp = "Isi nomor HP dengan 9 sampai 15 angka.";
   if (!v.instansi) errors.instansi = "Isi asal institusi.";
   if (!v.info) errors.info = "Isi dari mana kamu tahu acara ini.";
+  if (isStudent(currentTicket()) && !state.cards[state.idx]) errors.card = "Upload foto kartu pelajar dulu.";
+  document.querySelector('[data-err="card"]').textContent = errors.card || "";
   const map = { email: "#fEmail", nama: "#fNama", hp: "#fHp", instansi: "#fInstansi", info: "#fInfo" };
   Object.keys(map).forEach((k) => {
     $(map[k]).classList.toggle("invalid", !!errors[k]);
@@ -411,18 +439,41 @@ function readAsDataUrl(file) {
   });
 }
 
-function compressImage(file) {
+function showCard(c) {
+  $("#cardPreview").hidden = !c;
+  if (c) $("#cardPreview").src = c.dataUrl;
+  $("#cardText").textContent = c ? "Foto terpilih. Klik foto ini untuk menggantinya." : "Klik untuk upload foto kartu pelajar";
+  $("#cardDrop").classList.toggle("has", !!c);
+}
+
+async function handleCard(file) {
+  const err = document.querySelector('[data-err="card"]');
+  err.textContent = "";
+  if (!file) return;
+  if (!/^image\//.test(file.type) && !/\.(heic|heif)$/i.test(file.name)) {
+    err.textContent = "File harus berupa foto (JPG, PNG, HEIC).";
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    err.textContent = "Ukuran foto maksimal 8 MB.";
+    return;
+  }
+  state.cards[state.idx] = await compressImage(file, 1100, 0.78);
+  showCard(state.cards[state.idx]);
+}
+
+function compressImage(file, maxSide, quality) {
   return new Promise(async (resolve) => {
     const raw = await readAsDataUrl(file);
     const img = new Image();
     img.onload = () => {
-      const max = 1400;
+      const max = maxSide || 1400;
       const scale = Math.min(1, max / Math.max(img.width, img.height));
       const c = document.createElement("canvas");
       c.width = Math.round(img.width * scale);
       c.height = Math.round(img.height * scale);
       c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      resolve({ dataUrl: c.toDataURL("image/jpeg", 0.82), mime: "image/jpeg", name: file.name.replace(/\.[^.]+$/, "") + ".jpg" });
+      resolve({ dataUrl: c.toDataURL("image/jpeg", quality || 0.82), mime: "image/jpeg", name: file.name.replace(/\.[^.]+$/, "") + ".jpg" });
     };
     img.onerror = () => resolve({ dataUrl: raw, mime: file.type || "image/jpeg", name: file.name });
     img.src = raw;
@@ -478,7 +529,7 @@ async function postOrder(payload) {
 
 // requestId tetap sama selama isi pesanan sama, jadi pengiriman ulang tidak tercatat dua kali.
 function requestIdFor(t) {
-  const sig = [t.label, JSON.stringify(state.people), state.proof.dataUrl.length, state.proof.dataUrl.slice(-48)].join("|");
+  const sig = [t.label, JSON.stringify(state.people), state.proof.dataUrl.length, state.proof.dataUrl.slice(-48), state.cards.map((c) => (c ? c.dataUrl.length : 0)).join(",")].join("|");
   if (!state.requestId || state.reqSig !== sig) {
     state.requestId = "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
     state.reqSig = sig;
@@ -504,7 +555,10 @@ async function submitOrder() {
     ticketLabel: t.label,
     qty: state.people.length,
     promoCode: state.promo ? state.promo.code : "",
-    people: state.people,
+    people: state.people.map((p, i) => {
+      const c = state.cards[i];
+      return isStudent(t) && c ? Object.assign({}, p, { card: { name: c.name, mime: c.mime, data: c.dataUrl.split(",")[1] } }) : p;
+    }),
     requestId: requestIdFor(t),
     proof: { name: state.proof.name, mime: state.proof.mime, data: state.proof.dataUrl.split(",")[1] }
   };
@@ -557,6 +611,7 @@ function resetAll() {
   state.people = [];
   state.idx = 0;
   state.proof = null;
+  state.cards = [];
   $("#promoInput").value = "";
   $("#promoMsg").textContent = "";
   $("#proofPreview").hidden = true;
@@ -727,6 +782,18 @@ dz.addEventListener("drop", (e) => {
 });
 $("#proofInput").addEventListener("change", (e) => handleFile(e.target.files[0]));
 $("#btnSubmit").addEventListener("click", submitOrder);
+$("#cardDrop").addEventListener("click", () => $("#cardInput").click());
+$("#cardDrop").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    $("#cardInput").click();
+  }
+});
+$("#cardInput").addEventListener("click", (e) => e.stopPropagation());
+$("#cardInput").addEventListener("change", async (e) => {
+  await handleCard(e.target.files[0]);
+  e.target.value = "";
+});
 $("#netClose").addEventListener("click", () => closeModal("modalNet"));
 $("#netRetry").addEventListener("click", () => {
   closeModal("modalNet");
