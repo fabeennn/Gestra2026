@@ -1,5 +1,5 @@
 const CONFIG = {
-  apiUrl: "https://script.google.com/macros/s/AKfycbyR9vq2YudXuUUV-exq7btMgMQEWrI_8M4b6AQ0EhkZGjCPWHcBkBxHZleun9F1blr5/exec",
+  apiUrl: "https://script.google.com/macros/s/AKfycbxiEdkjdYVNUAj-tt_FUtHV0kCnA6U8FUMNYlhQusB4YZBX4iyvLHwUV_IrCSGFeF4P/exec",
   eventName: "Pagelaran Sastra 2026",
   location: "Auditorium Driyarkara, Sanata Dharma",
   contactWa: "089620331891",
