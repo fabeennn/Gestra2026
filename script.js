@@ -57,20 +57,27 @@ let introToken = 0;
 let introPending = false;
 function playTicketIntro() {
   const token = ++introToken;
-  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  // Catatan: sengaja tidak mengikuti "kurangi animasi" milik HP (sering aktif otomatis lewat hemat baterai).
   const grid = document.querySelector("#ticketGrid .grid");
   if (!grid || !grid.animate) return;
   const F = 1000 / 30;
   const cards = [...grid.children];
+  const modern = window.CSS && CSS.supports && CSS.supports("translate", "1px"); // HP lama: pakai transform
 
   // 1. Kartu muncul berurutan dari bawah (selisih 4 frame): Y +150 -> -10 -> 0, ease out.
   cards.forEach((c, i) => {
     c.animate(
-      [
-        { translate: "0 150px", opacity: 0, offset: 0 },
-        { translate: "0 -10px", opacity: 1, offset: 8 / 12 },
-        { translate: "0 0", opacity: 1, offset: 1 }
-      ],
+      modern
+        ? [
+            { translate: "0 150px", opacity: 0, offset: 0 },
+            { translate: "0 -10px", opacity: 1, offset: 8 / 12 },
+            { translate: "0 0", opacity: 1, offset: 1 }
+          ]
+        : [
+            { transform: "translateY(150px)", opacity: 0, offset: 0 },
+            { transform: "translateY(-10px)", opacity: 1, offset: 8 / 12 },
+            { transform: "translateY(0)", opacity: 1, offset: 1 }
+          ],
       { duration: 12 * F, delay: i * 4 * F, easing: "ease-out", fill: "backwards" }
     );
   });
@@ -78,7 +85,7 @@ function playTicketIntro() {
 
   // 2. Sorotan kartu GESTRA BANTING HARGA: zoom 100% -> 112% (miring -2 derajat) -> 110%.
   const hot = grid.querySelector(".tcard.banting.open");
-  if (hot) {
+  if (hot && modern) {
     hot.animate(
       [
         { scale: 1, rotate: "0deg", offset: 0 },
@@ -284,7 +291,7 @@ function cardHtml(t) {
       <div class="top">
         <span class="tag">${t.id === "rg-hudoq" ? "&#9733; " : ""}${esc(cardTag(t))}${t.id === "rg-hudoq" ? " &#9733;" : ""}</span>
         <h3 class="${cardName(t).length > 9 ? "long" : ""}">${esc(cardName(t))}</h3>
-        ${hide ? '<p class="price hidden-price">Harga segera diumumkan</p>' : `<p class="price">${rp(t.price)} <small>${unit}</small></p>`}
+        ${hide ? '<p class="price hidden-price">Harga segera diumumkan</p>' : `<p class="price">${t.group === "earlybird" && st === "ended" ? "Rp 00.000" : rp(t.price)} <small>${unit}</small></p>`}
         ${isStudent(t) ? '<p class="tnote">Wajib upload foto Kartu pelajar</p>' : ""}
       </div>
       ${hide || st === "ended" ? "" : `<div class="stock">
